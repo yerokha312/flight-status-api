@@ -2,9 +2,11 @@ package dev.yerokha.flightstatusapi.application.service;
 
 import dev.yerokha.flightstatusapi.application.dto.CreateFlightRequest;
 import dev.yerokha.flightstatusapi.application.dto.CustomPage;
+import dev.yerokha.flightstatusapi.application.exception.NotFoundException;
 import dev.yerokha.flightstatusapi.domain.entity.Flight;
 import dev.yerokha.flightstatusapi.domain.entity.Status;
 import dev.yerokha.flightstatusapi.domain.repository.FlightRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -39,7 +41,9 @@ public class FlightService {
         return getCustomPage(flightRepository.findByDestination(destination, pageable));
     }
 
-    public CustomPage<Flight> getFlightsByOriginAndDestination(String origin, String destination, Map<String, String> params) {
+    public CustomPage<Flight> getFlightsByOriginAndDestination(
+            String origin, String destination, Map<String, String> params
+    ) {
         Pageable pageable = getPageable(params);
         return getCustomPage(flightRepository.findByOriginAndDestination(origin, destination, pageable));
     }
@@ -47,16 +51,20 @@ public class FlightService {
     @Transactional
     public Flight addFlight(CreateFlightRequest request) {
         Flight flight = new Flight(
-
+                request.origin(), request.destination(), request.departure(), request.arrival(), request.status()
         );
         return flightRepository.save(flight);
     }
 
     @Transactional
     public Flight updateFlightStatus(Long id, Status status) {
-        Flight flight = flightRepository.findById(id).orElseThrow(() -> new RuntimeException("Flight not found"));
-        flight.setStatus(status);
-        return flightRepository.save(flight);
+        try {
+            Flight flight = flightRepository.getReferenceById(id);
+            flight.setStatus(status);
+            return flightRepository.save(flight);
+        } catch (EntityNotFoundException e) {
+            throw new NotFoundException(String.format("Flight with id %d not found", id));
+        }
     }
 
     private static PageRequest getPageable(Map<String, String> params) {

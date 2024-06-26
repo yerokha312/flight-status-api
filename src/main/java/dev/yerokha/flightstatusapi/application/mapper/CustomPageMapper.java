@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 
 public class CustomPageMapper {
     public static <T> CustomPage<T> getCustomPage(Page<T> page) {
-        return new CustomPage<T>(
+        return new CustomPage<>(
                 page.getContent(),
                 page.getNumber(),
                 page.getSize(),
