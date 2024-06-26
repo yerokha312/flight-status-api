@@ -12,7 +12,7 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Getter
 @Setter
@@ -33,22 +33,22 @@ public class Flight {
     @Column(name = "destination", nullable = false, length = 256, updatable = false)
     private String destination;
     @Column(name = "departure", nullable = false)
-    private LocalDateTime departure;
+    private OffsetDateTime departure;
     @Column(name = "arrival", nullable = false)
-    private LocalDateTime arrival;
+    private OffsetDateTime arrival;
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private Status status;
+    private FlightStatus flightStatus;
 
     public Flight() {
     }
 
-    public Flight(String origin, String destination, LocalDateTime departure, LocalDateTime arrival, Status status) {
+    public Flight(String origin, String destination, OffsetDateTime departure, OffsetDateTime arrival, FlightStatus flightStatus) {
         this.origin = origin;
         this.destination = destination;
         this.departure = departure;
         this.arrival = arrival;
-        this.status = status;
+        this.flightStatus = flightStatus;
     }
 
     @Override
@@ -59,7 +59,7 @@ public class Flight {
                ", destination='" + destination + '\'' +
                ", departure=" + departure +
                ", arrival=" + arrival +
-               ", status=" + status +
+               ", status=" + flightStatus +
                '}';
     }
 }
