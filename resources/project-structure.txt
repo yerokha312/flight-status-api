@@ -1,0 +1,29 @@
+src
+├── main
+│   ├── java
+│   │   └── dev
+│   │       └── yerokha
+│   │           └── flightstatusapi
+│   │                   ├── domain
+│   │                   │   ├── entity
+│   │                   │   ├── repository
+│   │                   │   ├── service
+│   │                   ├── application
+│   │                   │   ├── dto
+│   │                   │   └── service
+│   │                   ├── infrastructure
+│   │                   │   ├── repository
+│   │                   │   └── config
+│   │                   └── presentation
+│   │                       └── controller
+│   └── resources
+│       └── application.yml
+└── test
+    └── java
+        └── dev
+            └── yerokha
+                └── flightstatusapi
+                    ├── domain
+                    ├── application
+                    ├── infrastructure
+                    └── presentation
