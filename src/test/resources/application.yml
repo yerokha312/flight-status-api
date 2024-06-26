@@ -1,0 +1,16 @@
+spring:
+  main:
+    banner-mode: off
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  sql:
+    init:
+      data-locations: classpath:data.sql
+      schema-locations: classpath:schema.sql
+  data:
+    redis:
+      password: ${REDIS_PASSWORD}
+      username: ${REDIS_USER}
+      port: ${REDIS_PORT}
+      host: ${REDIS_HOST}

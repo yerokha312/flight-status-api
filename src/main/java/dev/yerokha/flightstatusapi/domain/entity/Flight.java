@@ -9,13 +9,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.time.OffsetDateTime;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "flight", indexes = {
         @Index(columnList = "arrival"),
@@ -39,6 +35,54 @@ public class Flight {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private FlightStatus flightStatus;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(String origin) {
+        this.origin = origin;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
+
+    public OffsetDateTime getDeparture() {
+        return departure;
+    }
+
+    public void setDeparture(OffsetDateTime departure) {
+        this.departure = departure;
+    }
+
+    public OffsetDateTime getArrival() {
+        return arrival;
+    }
+
+    public void setArrival(OffsetDateTime arrival) {
+        this.arrival = arrival;
+    }
+
+    public FlightStatus getFlightStatus() {
+        return flightStatus;
+    }
+
+    public void setFlightStatus(FlightStatus flightStatus) {
+        this.flightStatus = flightStatus;
+    }
 
     public Flight() {
     }

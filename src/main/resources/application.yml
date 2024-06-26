@@ -8,3 +8,9 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+  data:
+    redis:
+      password: ${REDIS_PASSWORD}
+      username: ${REDIS_USER}
+      port: ${REDIS_PORT}
+      host: ${REDIS_HOST}
