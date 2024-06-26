@@ -40,6 +40,17 @@ public class Flight {
     @Column(name = "status", nullable = false)
     private Status status;
 
+    public Flight() {
+    }
+
+    public Flight(String origin, String destination, LocalDateTime departure, LocalDateTime arrival, Status status) {
+        this.origin = origin;
+        this.destination = destination;
+        this.departure = departure;
+        this.arrival = arrival;
+        this.status = status;
+    }
+
     @Override
     public String toString() {
         return "Flight{" +
