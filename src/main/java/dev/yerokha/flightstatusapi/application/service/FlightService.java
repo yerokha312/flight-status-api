@@ -85,7 +85,6 @@ public class FlightService {
     }
 
     @CachePut(value = "flight", key = "#result.id")
-    @Transactional
     public Flight addFlight(CreateFlightRequest request) {
         Flight flight = new Flight(
                 request.origin(),

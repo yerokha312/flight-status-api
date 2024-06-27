@@ -6,6 +6,7 @@ import dev.yerokha.flightstatusapi.infrastructure.dto.LoginResponse;
 import dev.yerokha.flightstatusapi.infrastructure.entity.RefreshToken;
 import dev.yerokha.flightstatusapi.infrastructure.repository.TokenRepository;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -22,7 +23,6 @@ import java.util.concurrent.TimeUnit;
 import static dev.yerokha.flightstatusapi.infrastructure.util.EncryptionUtil.decrypt;
 import static dev.yerokha.flightstatusapi.infrastructure.util.EncryptionUtil.encrypt;
 import static dev.yerokha.flightstatusapi.infrastructure.util.RedisUtil.containsKey;
-import static dev.yerokha.flightstatusapi.infrastructure.util.RedisUtil.deleteKey;
 import static dev.yerokha.flightstatusapi.infrastructure.util.RedisUtil.setValue;
 
 @Service
@@ -41,8 +41,16 @@ public class TokenService {
         this.tokenRepository = tokenRepository;
     }
 
-    static String getEmailFromAuthToken(Authentication authentication) {
-        Jwt jwt = (Jwt) authentication.getPrincipal();
+    public String getCurrentUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "anonymous";
+        }
+        Object principal = authentication.getPrincipal();
+        if (principal.equals("anonymousUser")) {
+            return "anonymous";
+        }
+        Jwt jwt = (Jwt) principal;
         return jwt.getSubject();
     }
 
@@ -176,33 +184,6 @@ public class TokenService {
 
     private boolean isTokenRevoked(String refreshToken) {
         return containsKey("revoked_token:" + refreshToken.substring(7));
-    }
-
-    public void revokeToken_Logout(String token) {
-        String email = decodeToken(token).getSubject();
-        String key = "access_token:" + email;
-        if (containsKey(key)) {
-            deleteKey(key);
-        }
-        List<RefreshToken> notRevokedByUsername = tokenRepository.findNotRevokedByUserEntity_Username(email);
-        for (RefreshToken refreshToken : notRevokedByUsername) {
-            String decryptedTokenValue = decrypt(refreshToken.getToken());
-            if (token.equals(decryptedTokenValue)) {
-                refreshToken.setRevoked(true);
-                setValue("revoked_token:" + decryptedTokenValue.substring(7), "true", 7, TimeUnit.DAYS);
-                tokenRepository.save(refreshToken);
-            }
-        }
-    }
-
-    public void revokeAllTokens(String email) {
-        deleteKey("access_token:" + email);
-        List<RefreshToken> notRevokedByUsername = tokenRepository.findNotRevokedByUserEntity_Username(email);
-        notRevokedByUsername.forEach(token -> {
-            token.setRevoked(true);
-            tokenRepository.save(token);
-            setValue("revoked_token:" + decrypt(token.getToken()).substring(7), "true", 7, TimeUnit.DAYS);
-        });
     }
 
 }
