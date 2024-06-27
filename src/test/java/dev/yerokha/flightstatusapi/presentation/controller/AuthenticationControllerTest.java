@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -25,7 +24,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Order(1)
 @SpringBootTest
 @AutoConfigureMockMvc
-@DirtiesContext
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class AuthenticationControllerTest {
 
@@ -34,17 +32,19 @@ class AuthenticationControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    public static String accessToken;
-    public static String refreshToken;
+    public static String accessTokenModerator;
+    public static String accessTokenUser;
+    public static String refreshTokenModerator;
+    public static String refreshTokenUser;
 
     @Test
     @Order(1)
     void registerUser_ShouldReturn201AndSuccessMessage() throws Exception {
-        RegistrationRequest request = new RegistrationRequest("testappuser", "password");
-        String json = objectMapper.writeValueAsString(request);
+        RegistrationRequest request = new RegistrationRequest("testappuser", "p@ssw0rD");
+        String requestBody = objectMapper.writeValueAsString(request);
         mockMvc.perform(post("/api/v1/auth/registration")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
+                        .content(requestBody))
                 .andExpectAll(
                         status().isCreated(),
                         jsonPath("$.message").value("Registration success! Please login")
@@ -55,37 +55,37 @@ class AuthenticationControllerTest {
     @Order(1)
     void registerUser_ShouldReturn400PasswordIsTooShort() throws Exception {
         RegistrationRequest request = new RegistrationRequest("testuser", "passwor");
-        String json = objectMapper.writeValueAsString(request);
+        String requestBody = objectMapper.writeValueAsString(request);
         mockMvc.perform(post("/api/v1/auth/registration")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
+                        .content(requestBody))
                 .andExpectAll(
                         status().isBadRequest(),
-                        jsonPath("$.message").value("Password length must be between 8 and 30")
+                        jsonPath("$.message").value("Password length must be between 8-30 characters, and should contain at least 1 upper, 1 lower and 1 special symbol")
                 );
     }
 
     @Test
     @Order(1)
-    void register_ShouldReturn201AndSuccessMessage() throws Exception {
-        RegistrationRequest request = new RegistrationRequest("testuser", "password");
-        String json = objectMapper.writeValueAsString(request);
+    void registerUser_ShouldReturn409AndIsAlreadyTakenException() throws Exception {
+        RegistrationRequest request = new RegistrationRequest("testappuser", "p@ssw0rD");
+        String requestBody = objectMapper.writeValueAsString(request);
         mockMvc.perform(post("/api/v1/auth/registration")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
+                        .content(requestBody))
                 .andExpectAll(
-                        status().isCreated(),
-                        jsonPath("$.message").value("Registration success! Please login")
+                        status().isConflict(),
+                        jsonPath("$.message").value("Username is already taken. Try another one.")
                 );
     }
 
     @Test
     @Order(2)
     void login_ShouldReturn200AndSuccessMessage() throws Exception {
-        LoginRequest request = new LoginRequest("testappuser", "password");
-        String json = objectMapper.writeValueAsString(request);
+        LoginRequest request = new LoginRequest("moderator", "password");
+        String requestBody = objectMapper.writeValueAsString(request);
         MvcResult mvcResult = mockMvc.perform(post("/api/v1/auth/login")
-                        .content(json)
+                        .content(requestBody)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpectAll(
                         status().isOk(),
@@ -94,17 +94,37 @@ class AuthenticationControllerTest {
                 )
                 .andReturn();
 
-        accessToken = extractToken(mvcResult.getResponse().getContentAsString(), "accessToken");
-        refreshToken = extractToken(mvcResult.getResponse().getContentAsString(), "refreshToken");
+        accessTokenModerator = extractToken(mvcResult.getResponse().getContentAsString(), "accessToken");
+        refreshTokenModerator = extractToken(mvcResult.getResponse().getContentAsString(), "refreshToken");
+    }
+
+    @Test
+    @Order(2)
+    void login_ShouldReturn200AndSuccessMessageForUser() throws Exception {
+        Thread.sleep(1000);
+        LoginRequest request = new LoginRequest("testappuser", "p@ssw0rD");
+        String requestBody = objectMapper.writeValueAsString(request);
+        MvcResult mvcResult = mockMvc.perform(post("/api/v1/auth/login")
+                        .content(requestBody)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.accessToken").isNotEmpty(),
+                        jsonPath("$.refreshToken").isNotEmpty()
+                )
+                .andReturn();
+
+        accessTokenUser = extractToken(mvcResult.getResponse().getContentAsString(), "accessToken");
+        refreshTokenUser = extractToken(mvcResult.getResponse().getContentAsString(), "refreshToken");
     }
 
     @Test
     @Order(2)
     void login_ShouldReturn401AndFailureMessage() throws Exception {
         LoginRequest request = new LoginRequest("username", "invalid_password");
-        String json = objectMapper.writeValueAsString(request);
+        String requestBody = objectMapper.writeValueAsString(request);
         mockMvc.perform(post("/api/v1/auth/login")
-                        .content(json)
+                        .content(requestBody)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpectAll(
                         status().isUnauthorized(),
@@ -113,11 +133,12 @@ class AuthenticationControllerTest {
     }
 
     @Test
+    @Order(3)
     void refreshToken_ShouldReturn200AndNewAccessToken() throws Exception {
         Thread.sleep(1000);
         MvcResult mvcResult = mockMvc.perform(post("/api/v1/auth/refresh-token")
                         .contentType(MediaType.TEXT_PLAIN)
-                        .content("Bearer " + refreshToken))
+                        .content("Bearer " + refreshTokenModerator))
                 .andExpectAll(
                         status().isOk(),
                         jsonPath("$.accessToken").isNotEmpty()
@@ -127,10 +148,24 @@ class AuthenticationControllerTest {
         String newAccessToken = extractToken(mvcResult.getResponse().getContentAsString(),
                 "accessToken");
 
-        Assertions.assertNotEquals(accessToken, newAccessToken,
+        Assertions.assertNotEquals(accessTokenModerator, newAccessToken,
                 "New access token should be different from the initial one");
 
-        accessToken = newAccessToken;
+        accessTokenModerator = newAccessToken;
+    }
+
+    @Test
+    @Order(3)
+    void refreshToken_ShouldReturn401AndWarnAboutMalformedToken() throws Exception {
+        Thread.sleep(1000);
+        mockMvc.perform(post("/api/v1/auth/refresh-token")
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .content("Bearer " + "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VybmFtZSIsInJvbGUiOiJVU0VSIiwiaXNzIjoic2VsZiIsImV4cCI6MTcyMDAzNjEwOCwidG9rZW5UeXBlIjoiUkVGUkVTSCIsImlhdCI6MTcxOTQzMTMwOCwidXNlcklkIjoyMDJ9.ZzSkdRD96tMXynWgLIj-OZ0r2ocoTyHFoEaZf_60ajoSMb_B23xDvRvyne8GS5C80Cpry_qSa0xjfWGIVWNsNq5T002PPCX70-IEuevGn6TiPahcAjrE9KSrEVrLYSJ2gw3Au4co2BgH7D4X2NCf1tYtkftcCFE6qg2Rly1iYN2KR9gvf9nT6fxfjU_yQjN8oDIeeb0dG3atFa3TBHOFDu6nJHWcRHa08aQXYd3kp09t1o2gMfVKJ72u4SjAjID68z7mBF6O_tmG_m1u-gS1FlzxuZjGWs1BbideDpYw5c5teqJ-Br5NwDGdgMEn5ui5a33ZNmtiDSf8iR-P8QWtsw"))
+                .andExpectAll(
+                        status().isUnauthorized(),
+                        jsonPath("$.message").isNotEmpty()
+                );
+
     }
 
     static String extractToken(String responseContent, String tokenName) throws JSONException {

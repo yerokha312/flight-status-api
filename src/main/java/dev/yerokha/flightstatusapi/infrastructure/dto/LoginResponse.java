@@ -1,7 +1,10 @@
 package dev.yerokha.flightstatusapi.infrastructure.dto;
 
+import jakarta.validation.constraints.NotNull;
+
 public record LoginResponse(
-        String accessToken, String refreshToken
+        @NotNull String accessToken,
+        @NotNull String refreshToken
 ) {
 }
 

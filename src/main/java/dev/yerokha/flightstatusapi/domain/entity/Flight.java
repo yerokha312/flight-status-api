@@ -1,5 +1,6 @@
 package dev.yerokha.flightstatusapi.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -24,14 +25,21 @@ public class Flight {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;
+
     @Column(name = "origin", nullable = false, length = 256, updatable = false)
     private String origin;
+
     @Column(name = "destination", nullable = false, length = 256, updatable = false)
     private String destination;
+
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mmXXX")
     @Column(name = "departure", nullable = false)
     private OffsetDateTime departure;
+
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mmXXX")
     @Column(name = "arrival", nullable = false)
     private OffsetDateTime arrival;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private FlightStatus flightStatus;

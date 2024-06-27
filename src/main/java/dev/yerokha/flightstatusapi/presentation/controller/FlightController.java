@@ -2,8 +2,11 @@ package dev.yerokha.flightstatusapi.presentation.controller;
 
 import dev.yerokha.flightstatusapi.application.dto.CreateFlightRequest;
 import dev.yerokha.flightstatusapi.application.dto.CustomPage;
+import dev.yerokha.flightstatusapi.application.exception.InvalidArgumentException;
+import dev.yerokha.flightstatusapi.application.exception.InvalidFlightStatusException;
 import dev.yerokha.flightstatusapi.application.service.FlightService;
 import dev.yerokha.flightstatusapi.domain.entity.Flight;
+import dev.yerokha.flightstatusapi.domain.entity.FlightStatus;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -33,7 +36,8 @@ public class FlightController {
     @PreAuthorize("hasRole('MODERATOR')")
     @PostMapping
     public ResponseEntity<Flight> createFlight(@Valid @RequestBody CreateFlightRequest request) {
-        return new ResponseEntity<>(flightService.addFlight(request), HttpStatus.CREATED);
+        Flight flight = flightService.addFlight(request);
+        return new ResponseEntity<>(flight, HttpStatus.CREATED);
     }
 
     @GetMapping
@@ -41,9 +45,26 @@ public class FlightController {
         return ResponseEntity.ok(flightService.getFlights(params));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Flight> getOneFlight(@PathVariable Long id) {
+        if (id < 1) {
+            throw new InvalidArgumentException("Invalid flight ID");
+        }
+        return ResponseEntity.ok(flightService.getFlightById(id));
+    }
+
     @PreAuthorize("hasRole('MODERATOR')")
     @PutMapping(value = "/{id}", consumes = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<Flight> updateFlightStatus(@PathVariable Long id, @RequestBody String status) {
-        return ResponseEntity.ok(flightService.updateFlightStatus(id, status));
+        if (id < 1) {
+            throw new InvalidArgumentException("Invalid flight ID");
+        }
+        FlightStatus flightStatus;
+        try {
+            flightStatus = FlightStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidFlightStatusException("Invalid flight status. Try again");
+        }
+        return ResponseEntity.ok(flightService.updateFlightStatus(id, flightStatus));
     }
 }

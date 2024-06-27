@@ -53,20 +53,20 @@ public class FlightService {
     private CustomPage<Flight> getFlightsByOrigin(Map<String, String> params) {
         Pageable pageable = getPageable(params);
         String origin = params.get("origin");
-        return getCustomPage(flightRepository.findByOrigin(origin, pageable));
+        return getCustomPage(flightRepository.findByOriginIgnoreCase(origin, pageable));
     }
 
     private CustomPage<Flight> getFlightsByDestination(Map<String, String> params) {
         Pageable pageable = getPageable(params);
         String destination = params.get("destination");
-        return getCustomPage(flightRepository.findByDestination(destination, pageable));
+        return getCustomPage(flightRepository.findByDestinationIgnoreCase(destination, pageable));
     }
 
     private CustomPage<Flight> getFlightsByOriginAndDestination(Map<String, String> params) {
         Pageable pageable = getPageable(params);
         String origin = params.get("origin");
         String destination = params.get("destination");
-        return getCustomPage(flightRepository.findByOriginAndDestination(origin, destination, pageable));
+        return getCustomPage(flightRepository.findByOriginAndDestinationIgnoreCase(origin, destination, pageable));
     }
 
     @Transactional
@@ -82,13 +82,13 @@ public class FlightService {
     }
 
     @Transactional
-    public Flight updateFlightStatus(Long id, String status) {
+    public Flight updateFlightStatus(Long id, FlightStatus status) {
         try {
             Flight flight = flightRepository.getReferenceById(id);
-            flight.setFlightStatus(FlightStatus.valueOf(status.toUpperCase()));
+            flight.setFlightStatus(status);
             return flightRepository.save(flight);
         } catch (EntityNotFoundException e) {
-            throw new NotFoundException(String.format("Flight with id %d not found", id));
+            throw new NotFoundException(String.format("Flight with ID %d not found", id));
         }
     }
 
@@ -108,5 +108,10 @@ public class FlightService {
             throw new InvalidFilterTypeException("Invalid filter type: " + filter);
         }
         return flightFilterType;
+    }
+
+    public Flight getFlightById(Long id) {
+        return flightRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(String.format("Flight with ID %d not found", id)));
     }
 }

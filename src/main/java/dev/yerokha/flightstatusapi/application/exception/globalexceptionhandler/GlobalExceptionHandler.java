@@ -1,5 +1,12 @@
-package dev.yerokha.flightstatusapi.application.exception;
+package dev.yerokha.flightstatusapi.application.exception.globalexceptionhandler;
 
+import dev.yerokha.flightstatusapi.application.exception.AlreadyExistsException;
+import dev.yerokha.flightstatusapi.application.exception.ErrorResponse;
+import dev.yerokha.flightstatusapi.application.exception.InvalidArgumentException;
+import dev.yerokha.flightstatusapi.application.exception.InvalidFilterTypeException;
+import dev.yerokha.flightstatusapi.application.exception.InvalidFlightStatusException;
+import dev.yerokha.flightstatusapi.application.exception.InvalidTokenException;
+import dev.yerokha.flightstatusapi.application.exception.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -38,6 +45,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleAlreadyExistsException(AlreadyExistsException e) {
         return new ResponseEntity<>(new ErrorResponse(e.getMessage()), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(InvalidFlightStatusException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidFlightStatusException(InvalidFlightStatusException e) {
+        return new ResponseEntity<>(new ErrorResponse(e.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidArgumentException(InvalidArgumentException e) {
+        return new ResponseEntity<>(new ErrorResponse(e.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
 }
