@@ -160,13 +160,20 @@ class FlightControllerTest {
     @Test
     @Order(2)
     void getFlightsWithModeratorToken_ShouldReturn200() throws Exception {
-        mockMvc.perform(get("/api/v1/flights")
+        MvcResult mvcResult = mockMvc.perform(get("/api/v1/flights")
                         .header("Authorization", "Bearer " + accessTokenModerator))
                 .andExpectAll(
                         status().isOk(),
                         jsonPath("$.content").isArray(),
                         jsonPath("$.content", hasSize(10))
-                );
+                )
+                .andReturn();
+
+        String content = mvcResult.getResponse().getContentAsString();
+        List<String> publishedDates = JsonPath.read(content, "$.content[*].arrival");
+        for (int i = 1; i < 10; i++) {
+            assert publishedDates.get(i - 1).compareTo(publishedDates.get(i)) >= 0;
+        }
     }
 
     @Test

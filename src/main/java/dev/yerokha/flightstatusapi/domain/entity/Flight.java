@@ -32,11 +32,11 @@ public class Flight {
     @Column(name = "destination", nullable = false, length = 256, updatable = false)
     private String destination;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mmXXX")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mmXXX", shape = JsonFormat.Shape.STRING)
     @Column(name = "departure", nullable = false)
     private OffsetDateTime departure;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mmXXX")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mmXXX", shape = JsonFormat.Shape.STRING)
     @Column(name = "arrival", nullable = false)
     private OffsetDateTime arrival;
 
