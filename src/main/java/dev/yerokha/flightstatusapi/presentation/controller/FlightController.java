@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -36,6 +37,10 @@ public class FlightController {
     @PreAuthorize("hasRole('MODERATOR')")
     @PostMapping
     public ResponseEntity<Flight> createFlight(@Valid @RequestBody CreateFlightRequest request) {
+        Map<String, String> params = new HashMap<>();
+        params.put("page", "0");
+        params.put("size", "10"); //TODO push every web client to use the same page size
+        flightService.evictCache(params);
         Flight flight = flightService.addFlight(request);
         return new ResponseEntity<>(flight, HttpStatus.CREATED);
     }

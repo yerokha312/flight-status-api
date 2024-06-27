@@ -10,6 +10,7 @@ import dev.yerokha.flightstatusapi.domain.entity.FlightStatus;
 import dev.yerokha.flightstatusapi.domain.repository.FlightRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -53,7 +54,7 @@ public class FlightService {
 
         return customPageMapper.putIntoCustomPage(result);
     }
-
+// we can use Slice instead of Page to prevent additional count() after every query, if we do not need total pages number
     private Page<Flight> getAllFlights(Map<String, String> params) {
         Pageable pageable = getPageable(params);
         return flightRepository.findAllPaged(pageable);
@@ -84,6 +85,7 @@ public class FlightService {
                 .orElseThrow(() -> new NotFoundException(String.format("Flight with ID %d not found", id)));
     }
 
+    // TODO we potentially can add a column to persist the time zone, since PG auto-converts timestampz to UTC
     @CachePut(value = "flight", key = "#result.id")
     public Flight addFlight(CreateFlightRequest request) {
         Flight flight = new Flight(
@@ -106,6 +108,11 @@ public class FlightService {
         } catch (EntityNotFoundException e) {
             throw new NotFoundException(String.format("Flight with ID %d not found", id));
         }
+    }
+
+    // supposed to evict cached first page of getAllFlights() since created Flight probably be the latest one
+    @CacheEvict(value = "flightsLists", key = "#params.hashCode()")
+    public void evictCache(Map<String, String> params) {
     }
 
     private static PageRequest getPageable(Map<String, String> params) {
