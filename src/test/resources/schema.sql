@@ -8,7 +8,7 @@ create table flight
     origin      varchar(256)                not null,
     primary key (id),
     constraint flight_status_check
-        check (status IN ('IN_TIME', 'DELAYED', 'CANCELED'))
+        check (status IN ('IN_TIME', 'DELAYED', 'CANCELLED'))
 );
 
 create sequence flight_seq

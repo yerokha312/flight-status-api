@@ -5,12 +5,19 @@ spring:
     url: ${DATABASE_URL}
     username: ${DATABASE_USERNAME}
     password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
+    show-sql: true
   data:
     redis:
       password: ${REDIS_PASSWORD}
       username: ${REDIS_USER}
       port: ${REDIS_PORT}
       host: ${REDIS_HOST}
+  cache:
+    type: caffeine
+  sql:
+    init:
+      mode: always

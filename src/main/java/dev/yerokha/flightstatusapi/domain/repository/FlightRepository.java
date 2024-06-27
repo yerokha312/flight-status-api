@@ -10,13 +10,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FlightRepository extends JpaRepository<Flight, Long> {
 
-    Page<Flight> findByOrigin(String origin, Pageable pageable);
+    Page<Flight> findByOriginIgnoreCase(String origin, Pageable pageable);
 
-    Page<Flight> findByDestination(String destination, Pageable pageable);
+    Page<Flight> findByDestinationIgnoreCase(String destination, Pageable pageable);
 
-    Page<Flight> findByOriginAndDestination(String origin, String destination, Pageable pageable);
+    Page<Flight> findByOriginAndDestinationIgnoreCase(String origin, String destination, Pageable pageable);
 
-    @Query("SELECT f FROM Flight f ORDER BY f.arrival DESC")
+    @Query("SELECT f FROM Flight f")
     Page<Flight> findAllPaged(Pageable pageable);
 }
 

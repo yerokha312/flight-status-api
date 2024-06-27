@@ -47,7 +47,7 @@ public class UserService implements UserDetailsService {
     public void createUser(RegistrationRequest request) {
         boolean usernameExists = userRepository.existsByUsername(request.username());
         if (usernameExists) {
-            throw new AlreadyExistsException("Username is already taken");
+            throw new AlreadyExistsException("Username is already taken. Try another one.");
         }
         UserEntity user = new UserEntity(request.username(),
                 passwordEncoder.encode(request.password()),
