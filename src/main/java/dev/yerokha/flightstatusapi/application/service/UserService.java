@@ -40,12 +40,13 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username)
+        return userRepository.findByUsernameIgnoreCase(username)
                 .orElseThrow(() -> new NotFoundException("User not found"));
     }
 
     public void createUser(RegistrationRequest request) {
-        boolean usernameExists = userRepository.existsByUsername(request.username());
+        String username = request.username().toLowerCase();
+        boolean usernameExists = userRepository.existsByUsernameIgnoreCase(username);
         if (usernameExists) {
             throw new AlreadyExistsException("Username is already taken. Try another one.");
         }
