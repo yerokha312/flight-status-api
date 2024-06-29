@@ -12,6 +12,45 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 import java.time.OffsetDateTime;
+// TODO:
+// 1. Create an abstract class `AbstractFlight` which contains common fields and methods:
+//    - id
+//    - origin
+//    - destination
+//    - departure
+//    - arrival
+//    - flightStatus
+//
+// 2. Move the common annotations and fields to `AbstractFlight`
+//
+// 3. Extend the `Flight` class from `AbstractFlight`:
+//    - Remove the common fields from `Flight`
+//    - Add any specific fields or methods to `Flight` if necessary
+//
+// 4. Update any JPA repositories or service layers to use `AbstractFlight` if needed.
+//
+// 5. Ensure all functionality work correctly after refactoring
+//
+// @MappedSuperclass
+// public abstract class AbstractFlight {
+//    @Id
+//    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+//    @Column(name = "id", updatable = false, nullable = false)
+//    private Long id;
+//      TODO: Add offset columns to persist thr original time zone
+//
+// }
+//
+// @Entity
+// @Table(name = "flight", indexes = {
+//        @Index(columnList = "arrival"),
+//        @Index(columnList = "origin, arrival"),
+//        @Index(columnList = "destination, arrival"),
+//        @Index(columnList = "origin, destination, arrival")
+// })
+// public class Flight extends AbstractFlight {
+//     Additional fields or methods specific to Flight class
+// }
 
 @Entity
 @Table(name = "flight", indexes = {
